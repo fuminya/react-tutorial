@@ -9,10 +9,10 @@ class Square extends React.Component {
         };
     }
     
-    render() {
+    render(i) {
         return (
             // this.props.onClickで親コンポーネントのクリックイベントハンドラを呼ぶ
-            <button className="square" onClick={() => this.props.onClick()}>
+            <button className="square" onClick={() => this.props.onClick(i)}>
                 {this.props.value}
             </button>
         );
@@ -30,44 +30,43 @@ class Board extends React.Component {
         }
     }
     
-    handleClick(i) {
-        // 現在の配列を直接変更するのではなく、sliceを呼び出してコピーしている
-        // 直接データを変更しないことによって、コンポーネントや全体のパフォーマンスを向上させるらしい
-        // https://facebook.github.io/react/tutorial/tutorial.html#why-immutability-is-important
-        const squares = this.state.squares.slice();
+    // handleClick(i) {
+    //     // 現在の配列を直接変更するのではなく、sliceを呼び出してコピーしている
+    //     // 直接データを変更しないことによって、コンポーネントや全体のパフォーマンスを向上させるらしい
+    //     // https://facebook.github.io/react/tutorial/tutorial.html#why-immutability-is-important
+    //     const squares = this.state.squares.slice();
         
-        // すでに値がある or 勝負がついている場合はreturnで終わらせる！
-        if (calculateWinner(squares) || squares[i]){
-            return;
-        }
+    //     // すでに値がある or 勝負がついている場合はreturnで終わらせる！
+    //     if (calculateWinner(squares) || squares[i]){
+    //         return;
+    //     }
         
-        // フラグを確認して値を入れる
-        squares[i] = this.state.xIsNext ? '×' : '○';
-        this.setState({
-            squares: squares,
-            xIsNext: !this.state.xIsNext
-        });
-    }
+    //     // フラグを確認して値を入れる
+    //     squares[i] = this.state.xIsNext ? '×' : '○';
+    //     this.setState({
+    //         squares: squares,
+    //         xIsNext: !this.state.xIsNext
+    //     });
+    // }
     
     renderSquare(i) {
-        return <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />;
+        return <Square value={this.props.squares[i]} onClick={() => this.props.onClick(i)} />;
     }
 
     render() {
         // 勝敗を確認
-        const winner = calculateWinner(this.state.squares);
-        let status;
-        if (winner) {
-            // 勝負がついていたら、winnerを表示
-            status = 'Winner:' + winner;
-        } else {
-            // 違う時は次のプレイヤーを表示
-            status = 'Next player:' + (this.state.xIsNext ? '×' : '◯');
-        }
+        // const winner = calculateWinner(this.state.squares);
+        // let status;
+        // if (winner) {
+        //     // 勝負がついていたら、winnerを表示
+        //     status = 'Winner:' + winner;
+        // } else {
+        //     // 違う時は次のプレイヤーを表示
+        //     status = 'Next player:' + (this.state.xIsNext ? '×' : '◯');
+        // }
         
         return (
             <div>
-                <div className="status">{status}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -89,15 +88,73 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            history: [{
+                squares: Array(9).fill(null)
+            }],
+            xIsNext: true,
+            stepNumber: 0
+        }
+    }
+    
+    handleClick(i) {
+        var history = this.state.history;
+        var current = history[history.length - 1];
+        const squares = current.squares.slice();
+        if (calculateWinner(squares) || squares[i]) {
+            return;
+        }
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        
+        this.setState({
+            history: history.concat([{
+                squares: squares
+            }]),
+            xIsNext: !this.state.xIsNext,
+            stepNumber: history.length
+        });
+    }
+    
+    jumpTo(step) {
+        this.setState({
+           stepNumber: step,
+           xIsNext: (step%2) ? false : true 
+        });
+    }
+    
     render() {
+        const history = this.state.history;
+        const current = history[history.length - 1];
+        const winner = calculateWinner(current.squares);
+
+        let status;
+        if (winner) {
+            status = 'Winner: ' + winner;
+        } else {
+            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+        }
+        
+        const moves = history.map((step, move) => {
+            const desc = move ?
+                'MOVE #' + move :
+                'Game Start';
+            return (
+                <li key={move}>
+                    <a href="#" onClick={() => this.jumpTo(move)}>{desc}</a>
+                </li>  
+            ); 
+        });
+        
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board />
+                    <Board squares={current.squares} onClick={(i) => this.handleClick(i)}/>
                 </div>
                 <div className="game-info">
-                    <div>{/* status */}</div>
-                    <ol>{/* TODO */}</ol>
+                    <div>{status}</div>
+                    <ol>{moves}</ol>
                 </div>
             </div>
         );
