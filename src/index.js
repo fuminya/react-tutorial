@@ -30,41 +30,11 @@ class Board extends React.Component {
         }
     }
     
-    // handleClick(i) {
-    //     // 現在の配列を直接変更するのではなく、sliceを呼び出してコピーしている
-    //     // 直接データを変更しないことによって、コンポーネントや全体のパフォーマンスを向上させるらしい
-    //     // https://facebook.github.io/react/tutorial/tutorial.html#why-immutability-is-important
-    //     const squares = this.state.squares.slice();
-        
-    //     // すでに値がある or 勝負がついている場合はreturnで終わらせる！
-    //     if (calculateWinner(squares) || squares[i]){
-    //         return;
-    //     }
-        
-    //     // フラグを確認して値を入れる
-    //     squares[i] = this.state.xIsNext ? '×' : '○';
-    //     this.setState({
-    //         squares: squares,
-    //         xIsNext: !this.state.xIsNext
-    //     });
-    // }
-    
     renderSquare(i) {
         return <Square value={this.props.squares[i]} onClick={() => this.props.onClick(i)} />;
     }
 
     render() {
-        // 勝敗を確認
-        // const winner = calculateWinner(this.state.squares);
-        // let status;
-        // if (winner) {
-        //     // 勝負がついていたら、winnerを表示
-        //     status = 'Winner:' + winner;
-        // } else {
-        //     // 違う時は次のプレイヤーを表示
-        //     status = 'Next player:' + (this.state.xIsNext ? '×' : '◯');
-        // }
-        
         return (
             <div>
                 <div className="board-row">
@@ -101,7 +71,6 @@ class Game extends React.Component {
     
     handleClick(i) {
         var history = this.state.history;
-        // var current = history[history.length - 1];
         var current = history[this.state.stepNumber];
         const squares = current.squares.slice();
         if (calculateWinner(squares) || squares[i]) {
@@ -119,6 +88,7 @@ class Game extends React.Component {
     }
     
     jumpTo(step) {
+        // XとOの数を数える
         var countX = 0;
         var countO = 0;
         for(var i = 0; i < this.state.history[step].squares.length; i++){
@@ -137,13 +107,13 @@ class Game extends React.Component {
         console.log('X:' + countX + ' O:' + countO);
         this.setState({
            stepNumber: step,
+           // 必ずXから始まるため、XとOの数が同じ場合のみ次がXとなる
            xIsNext: (countX == countO) ? true : false 
         });
     }
     
     render() {
         const history = this.state.history;
-        // const current = history[history.length - 1];
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
 
